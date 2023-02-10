@@ -2,25 +2,19 @@ import React, { useState } from "react";
 import Tip from "./tip";
 import "./App.css";
 
-// 高阶组件是参数为组件，返回值为新组件的函数。
-// 当前函数接受一个组件
-// 高阶组件还支持链式调用
-// 1. error信息显示在新创建的组件而不是原本的无状态组件，解决办法是创建displayName
-// 2. 属性被固定写死了，无法复用
-const higherOrderComponent = (WarppedComponent) => {
+//  Render Props是React组件之间使用一个值为函数的 prop 共享代码的简单技术
+//  renderProps 假设子组件是一个函数，并把当前组件内部的state和逻辑传入该函数中。
+//  需要渲染的无状态组件，则可以通过这个函数的参数得到它想要的属性。
+//  renderProps因为组件内部是一个匿名函数，这就导致即便传入的属性没有任何变化，
+//  内部的子组件还是会整个渲染一遍。
+//  解决方法就是将该匿名函数再次包装，不过每次都这样做终究还是比较麻烦的。
+export default function App() {
     // 返回另一个组件
-    class OtherComp extends React.Component {
-        constructor(props) {
-            super(props);
-            this.state = {};
-        }
-        render() {
-            return <WarppedComponent {...this.props} />;
-        }
-    };
-
-    OtherComp.displayName =`wrap-${WarppedComponent.displayName}`
-    return OtherComp
+    return (<>
+        <RenderProopsComponent render={
+            xy => (<Tip {...xy} />)
+        } />
+    </>)
 };
 
 /**
@@ -36,7 +30,7 @@ const higherOrderComponent = (WarppedComponent) => {
  * 
  */
 
-export default function App() {
+function RenderProopsComponent(props) {
     const [xy, setXy] = useState({})
     const setPos = (e) => {
         setXy({
@@ -44,13 +38,11 @@ export default function App() {
             y: e.pageY
         })
     }
-    // 组合成一个有状态的组件（容器组件）
-    // 高阶组件内部的state成为了无状态组件的Props，带动内部的无状态组件进行刷新
-    // 实现了分离了UI和逻辑
-    const WarpTip = higherOrderComponent(Tip)
     return (
         <div className="App">
-             <WarpTip {...xy} />
+            {
+                props.render(xy)
+            }
             <div className="tile is-ancestor">
                 <div className="tile is-vertical is-8">
                     <div className="tile">
